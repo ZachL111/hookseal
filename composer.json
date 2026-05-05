@@ -1,0 +1,10 @@
+{
+  "name": "zachl111/hookseal",
+  "description": "Verify webhook signature, skew, replay window, and body hash fixtures.",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Portfolio\\": "src/"
+    }
+  }
+}
