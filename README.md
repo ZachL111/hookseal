@@ -1,68 +1,40 @@
 # hookseal
 
-`hookseal` packages a practical security tooling exercise in PHP. The emphasis is on deterministic behavior, a small public API, and examples that explain the tradeoffs.
+`hookseal` explores security tooling with a small PHP codebase and local fixtures. The technical goal is to verify webhook signature, skew, replay window, and body hash fixtures.
 
-## How I Read Hookseal
+## Use Case
 
-The useful thing to inspect here is how the same score rule is represented in code, metadata, and examples. If those three pieces disagree, the audit script should make the drift visible.
+The point is to make a small domain rule concrete enough that a reader can change it and immediately see what broke.
 
-## Main Behaviors
+## Hookseal Review Notes
 
-- Includes extended examples for replay guards, including `surge` and `degraded`.
-- Documents claim validation tradeoffs in `docs/operations.md`.
-- Runs locally with a single verification command and no external credentials.
-- Stores project constants and verification metadata in `metadata/project.json`.
-- Adds a repository audit script that checks structure before running the language verifier.
+`recovery` and `stress` are the cases worth reading first. They show the optimistic and cautious ends of the fixture.
 
-## Problem Shape
+## Highlights
 
-The goal is to capture the core behavior in code and make the surrounding assumptions obvious. A reader should be able to run the verifier, open the fixtures, and understand why each decision was made.
+- `fixtures/domain_review.csv` adds cases for trust boundary and claim drift.
+- `metadata/domain-review.json` records the same cases in structured form.
+- `config/review-profile.json` captures the read order and the two review questions.
+- `examples/hookseal-walkthrough.md` walks through the case spread.
+- The PHP code includes a review path for `policy width` and `claim drift`.
+- `docs/field-notes.md` explains the strongest and weakest cases.
 
-## Repository Map
+## Code Layout
 
-- `src`: primary implementation
-- `tests`: verification harness
-- `fixtures`: compact golden scenarios
-- `examples`: expanded scenario set
-- `metadata`: project constants and verification metadata
-- `docs`: operations and extension notes
-- `scripts`: local verification and audit commands
+The fixture data drives the tests. The code stays thin, while `metadata/domain-review.json` and `config/review-profile.json` explain what each case is meant to protect.
 
-## Internal Model
+The PHP code keeps the review rule close to the tests.
 
-The design is intentionally direct: parse or construct a signal, score it, classify it, and verify the expected branch. This makes the repository useful for studying security tooling behavior without needing a service or database unless the language project itself is SQL. The PHP implementation uses strict types and a small namespaced policy class.
-
-## How To Run It
+## Run The Check
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-This runs the language-level build or test path against the compact fixture set.
+## Regression Path
 
-## Scenario Walkthrough
+The same command runs the local verification path. The highest-scoring domain case is `recovery` at 224, which lands in `ship`. The most cautious case is `stress` at 143, which lands in `ship`.
 
-The extended cases are not random smoke tests. `degraded` keeps pressure on the review path, while `surge` shows the model when capacity and weight are strong enough to clear the threshold.
+## Future Work
 
-## Validation
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/audit.ps1
-```
-
-The audit command checks repository structure and README constraints before it delegates to the verifier.
-
-## Known Edges
-
-The repository favors determinism over breadth. It does not pull live data, keep secrets, or depend on network access for verification.
-
-## Follow-Up Work
-
-- Add a loader for `examples/extended_cases.csv` and promote selected cases into the language test suite.
-- Add a short report command that prints the score breakdown for a single scenario.
-- Add malformed input fixtures so the failure path is as visible as the happy path.
-- Add one more security tooling fixture that focuses on a malformed or borderline input.
-
-## Run It Locally
-
-Use a normal shell with PHP available on `PATH`. The verifier is written as a PowerShell script because the portfolio was assembled on Windows.
+No external service is required. A deeper version would add more negative cases and a clearer boundary around invalid input.
